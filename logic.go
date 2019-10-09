@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"sonnenfroh.de/test/actions"
-	"sonnenfroh.de/test/cmds"
-	"sonnenfroh.de/test/ui"
-	"sonnenfroh.de/test/winapi"
+	"github.com/moonblue4242/Gridda/actions"
+	"github.com/moonblue4242/Gridda/cmds"
+	"github.com/moonblue4242/Gridda/ui"
+	"github.com/moonblue4242/Gridda/winapi"
 )
 
 // Logic defines the externally callable methods
@@ -38,6 +38,7 @@ func NewLogic() Logic {
 	logic.ui, err = ui.New(logic, logic.config, func(msg *winapi.Message) {
 		logic.commander.HandleHotkey(msg)
 	})
+
 	if err != nil {
 		log.Fatalf("UI Setup failed: %s\n", err)
 	}

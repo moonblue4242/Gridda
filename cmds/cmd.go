@@ -1,8 +1,8 @@
 package cmds
 
 import (
-	"sonnenfroh.de/test/actions"
-	"sonnenfroh.de/test/winapi"
+	"github.com/moonblue4242/Gridda/actions"
+	"github.com/moonblue4242/Gridda/winapi"
 )
 
 const (

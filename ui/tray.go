@@ -5,9 +5,9 @@ import (
 	"log"
 	"strconv"
 
-	"sonnenfroh.de/test/cmds"
+	"github.com/moonblue4242/Gridda/cmds"
 
-	"sonnenfroh.de/test/winapi"
+	"github.com/moonblue4242/Gridda/winapi"
 )
 
 const (

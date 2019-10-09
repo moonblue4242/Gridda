@@ -3,8 +3,8 @@ package ui
 import (
 	"fmt"
 
-	"sonnenfroh.de/test/cmds"
-	"sonnenfroh.de/test/winapi"
+	"github.com/moonblue4242/Gridda/cmds"
+	"github.com/moonblue4242/Gridda/winapi"
 )
 
 // UI is the base instance for all ui related tasks
@@ -25,13 +25,24 @@ type Actions interface {
 func New(actions Actions, config *cmds.Config, onHotkey func(msg *winapi.Message)) (*UI, error) {
 	ui := &UI{actions: actions}
 	ui.onHotkey = onHotkey
-	hwnd, err := ui.createWindow("Grida")
+	hwnd, err := ui.createWindow("Gridda")
 	if hwnd == 0 {
 		return nil, err
 	}
 	ui.MainWindow = hwnd
 
-	// ui.createMenu()
+	var callback = func(hwnd winapi.Hwnd, lParam winapi.LParam) uintptr {
+		var processID = winapi.GetWindowThreadProcessID(hwnd)
+		processHandle, err := winapi.OpenProcess(processID)
+		if err == nil {
+			text, _ := winapi.GetWindowText(hwnd)
+			fmt.Printf("DD: %d, p:%d - %s -- %s\n", hwnd, processHandle, text, winapi.GetModuleBaseName(processHandle))
+		} else {
+
+		}
+		return 1
+	}
+	winapi.EnumWindows(winapi.WinEnumProc(callback))
 
 	ui.tray = NewTrayIcon(ui.MainWindow, ui.actions, config)
 

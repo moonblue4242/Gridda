@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	defaultWindowClass = "WOVER_DEFAULT_WINDOW_CLASS"
+	defaultWindowClass = "GRIDDA_DEFAULT_WINDOW_CLASS"
 
 	wS_BORDER        = 0x00800000
 	wS_CAPTION       = 0x00C00000
@@ -24,6 +24,9 @@ var (
 	defWindowProcW                  = user32.NewProc("DefWindowProcW")
 	showWindow                      = user32.NewProc("ShowWindow")
 	getClientRect                   = user32.NewProc("GetClientRect")
+	enumWindows                     = user32.NewProc("EnumWindows")
+	isWindow                        = user32.NewProc("IsWindow")
+	getWindowText                   = user32.NewProc("GetWindowTextA")
 )
 
 // MessageHandler can be used to add a custom handler for a specific window or application message to
@@ -56,6 +59,9 @@ func (messageHandlers messageHandlers) add(hwnd Hwnd, messageHandler *MessageHan
 }
 
 type winProc func(hwnd Hwnd, msg uint, wParam Wparam, lParam LParam) int
+
+// WinEnumProc defines a callback function called during window enumeration
+type WinEnumProc func(hwnd Hwnd, lParam LParam) uintptr
 
 type wNDCLASSEX struct {
 	Sizeof        uint32
@@ -140,6 +146,26 @@ func GetClientRect(hwnd Hwnd) (*Rect, error) {
 	ret, _, err := getClientRect.Call(uintptr(hwnd), uintptr(unsafe.Pointer(&rect)))
 	fmt.Printf("GetClientRect: %d, %s\n", ret, err)
 	return &rect, ifError(ret == uintptr(hwnd), err, "GetClientRect")
+}
+
+var modules = make(map[string]string)
+
+// EnumWindows enumerates all active windows
+func EnumWindows(callback WinEnumProc) error {
+	ret, _, err := enumWindows.Call(uintptr(syscall.NewCallback(callback)), uintptr(4711))
+	fmt.Printf("EnumWIndows: %d %s\n", ret, err)
+	return ifError(ret != 1, err, "EnumWindows")
+}
+
+// GetWindowText will return the title of the window
+func GetWindowText(hwnd Hwnd) (string, error) {
+	var data [256]byte
+	var result string = ""
+	ret, _, err := getWindowText.Call(uintptr(hwnd), uintptr(unsafe.Pointer(&data)), uintptr(len(data)))
+	if ret != 0 {
+		result = fmt.Sprintf("%s", data[:ret])
+	}
+	return result, ifError(ret != 0, err, "GetWindowText")
 }
 
 func init() {

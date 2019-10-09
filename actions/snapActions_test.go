@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"sonnenfroh.de/test/winapi"
+	"github.com/moonblue4242/Gridda/winapi"
 )
 
 var (

@@ -1,6 +1,6 @@
 package actions
 
-import "sonnenfroh.de/test/winapi"
+import "github.com/moonblue4242/Gridda/winapi"
 
 // SnapActions defines a set of actions for snaping windows to a grid, this structure
 // is NOT usable without initialization

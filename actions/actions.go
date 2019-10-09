@@ -3,7 +3,7 @@ package actions
 import (
 	"errors"
 
-	"sonnenfroh.de/test/winapi"
+	"github.com/moonblue4242/Gridda/winapi"
 )
 
 // Grid defines a basic grid on the screen at which windows can be snapped to
