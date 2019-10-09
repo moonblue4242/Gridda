@@ -1,23 +1,28 @@
 package actions
 
-import "github.com/moonblue4242/Gridda/winapi"
+import (
+	"strings"
+
+	"github.com/moonblue4242/Gridda/winapi"
+)
 
 // SnapActions defines a set of actions for snaping windows to a grid, this structure
 // is NOT usable without initialization
 type SnapActions struct {
-	spans map[int]map[winapi.Hwnd]*span
+	spans map[int]map[winapi.Hwnd]*Span
 }
 
 // NewSnapActions creates a new initialized snap actions structure
 func NewSnapActions() *SnapActions {
 	snapActions := new(SnapActions)
-	snapActions.spans = make(map[int]map[winapi.Hwnd]*span)
+	snapActions.spans = make(map[int]map[winapi.Hwnd]*Span)
 	return snapActions
 }
 
-type span struct {
-	columns int
-	rows    int
+// Span defines the amount of grid tiles the window should span over
+type Span struct {
+	Columns int
+	Rows    int
 }
 
 // ToLeft returns the action handler for snapping to the next grid line on the left
@@ -112,11 +117,11 @@ func (snapActions *SnapActions) snapBottom(target TargetWindow, activeConfig Act
 // spanHorizontal will increase/decrease the span bound by the amount of columns
 // additionally a snap is performed to refresh
 func (snapActions *SnapActions) spanHorizontal(target TargetWindow, activeConfig ActiveConfig, increase bool) {
-	item := snapActions.getOrSetSpan(activeConfig.GridIndex(), target.Hwnd())
-	if increase && item.columns < len(activeConfig.Grid().Columns) {
-		item.columns++
-	} else if !increase && item.columns > 1 {
-		item.columns--
+	item := snapActions.getOrSetSpan(activeConfig, target.Hwnd())
+	if increase && item.Columns < len(activeConfig.Grid().Columns) {
+		item.Columns++
+	} else if !increase && item.Columns > 1 {
+		item.Columns--
 	}
 	// refresh by snaping in place
 	snap(target, activeConfig, snapActions, nil)
@@ -125,35 +130,52 @@ func (snapActions *SnapActions) spanHorizontal(target TargetWindow, activeConfig
 // spanHorizontal will increase/decrease the span bound by the amount of columns
 // additionally a snap is performed to refresh
 func (snapActions *SnapActions) spanVertical(target TargetWindow, activeConfig ActiveConfig, increase bool) {
-	item := snapActions.getOrSetSpan(activeConfig.GridIndex(), target.Hwnd())
-	if increase && item.rows < len(activeConfig.Grid().Rows) {
-		item.rows++
-	} else if !increase && item.rows > 1 {
-		item.rows--
+	item := snapActions.getOrSetSpan(activeConfig, target.Hwnd())
+	if increase && item.Rows < len(activeConfig.Grid().Rows) {
+		item.Rows++
+	} else if !increase && item.Rows > 1 {
+		item.Rows--
 	}
 	// refresh by snaping in place
 	snap(target, activeConfig, snapActions, nil)
 }
 
-func (snapActions *SnapActions) getOrSetSpan(index int, hwnd winapi.Hwnd) *span {
-	spanMap, ok := snapActions.spans[index]
+func (snapActions *SnapActions) getOrSetSpan(activeConfig ActiveConfig, hwnd winapi.Hwnd) *Span {
+	spanMap, ok := snapActions.spans[activeConfig.GridIndex()]
 	if !ok {
-		spanMap = make(map[winapi.Hwnd]*span)
-		snapActions.spans[index] = spanMap
+		spanMap = make(map[winapi.Hwnd]*Span)
+		snapActions.spans[activeConfig.GridIndex()] = spanMap
 	}
 	item, ok := spanMap[hwnd]
 	if !ok {
-		item = new(span)
-		item.columns = 1
-		item.rows = 1
+		item = new(Span)
+		item.Columns, item.Rows = snapActions.getPresetSpanOrDefault(hwnd, activeConfig)
 		spanMap[hwnd] = item
 	}
 	return item
 }
 
+// getPresetSpanOrDefault will check if for the given base module the window is controlled by a preset exists
+func (snapActions *SnapActions) getPresetSpanOrDefault(hwnd winapi.Hwnd, activeConfig ActiveConfig) (columns int, rows int) {
+	columns = 1
+	rows = 1
+	processID := winapi.GetWindowThreadProcessID(hwnd)
+	if processHandle, err := winapi.OpenProcess(processID); err == nil {
+		moduleName := strings.ToUpper(winapi.GetModuleBaseName(processHandle))
+		for _, preset := range activeConfig.Grid().Presets {
+			if strings.ToUpper(preset.Executable) == moduleName {
+				columns = preset.Span.Columns
+				rows = preset.Span.Rows
+				break
+			}
+		}
+	}
+	return
+}
+
 func snap(target TargetWindow, activeConfig ActiveConfig, snapActions *SnapActions, snapMovement snapMovement) {
 	grid := activeConfig.Grid()
-	span := snapActions.getOrSetSpan(activeConfig.GridIndex(), target.Hwnd())
+	span := snapActions.getOrSetSpan(activeConfig, target.Hwnd())
 	// calculate corrections for special borders (e.g. drop shadows)
 	deltaH, _ := target.Delta()
 	correctedLeft := target.Size().Left + int32(deltaH)
@@ -169,12 +191,12 @@ func snap(target TargetWindow, activeConfig ActiveConfig, snapActions *SnapActio
 }
 
 // move the target window to the grid tile specified taking into account any necessary border corrections
-func move(target TargetWindow, span *span, grid *Grid, gridLeftIndex int, gridTopIndex int, widthPerWeightPx int32, heightPerWeightPx int32) {
+func move(target TargetWindow, span *Span, grid *Grid, gridLeftIndex int, gridTopIndex int, widthPerWeightPx int32, heightPerWeightPx int32) {
 	deltaH, deltaV := target.Delta()
 	left := getWeightedPosition(gridLeftIndex-1, grid.Columns, widthPerWeightPx)
 	top := getWeightedPosition(gridTopIndex-1, grid.Rows, heightPerWeightPx)
-	width := getSpannedDistance(gridLeftIndex, grid.Columns, widthPerWeightPx, span.columns)
-	height := getSpannedDistance(gridTopIndex, grid.Rows, heightPerWeightPx, span.rows)
+	width := getSpannedDistance(gridLeftIndex, grid.Columns, widthPerWeightPx, span.Columns)
+	height := getSpannedDistance(gridTopIndex, grid.Rows, heightPerWeightPx, span.Rows)
 
 	target.Move(left-deltaH, top, width+deltaH*2, height+deltaV)
 }

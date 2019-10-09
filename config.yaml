@@ -3,6 +3,17 @@ grids:
   name: Triptychon
   columns: [2, 3, 2]
   rows: [1,1]
+  presets:
+  -
+    executable: firefox.exe
+    span:
+      columns: 1
+      rows: 2
+  -
+    executable: code.exe
+    span:
+      columns: 1    
+      rows: 2
 - 
   name: Fine Grid
   columns: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]  

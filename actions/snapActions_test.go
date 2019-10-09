@@ -3,14 +3,14 @@ package actions
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/moonblue4242/Gridda/winapi"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
 	snapActionsMock  = NewSnapActions()
 	targetWindowMock = new(TargetWindowMock)
-	activeConfigMock = new(ActiveConfig)
+	activeConfigMock = new(ActiveConfigMock)
 
 	moveFunc func(left int, top int, width int, height int)
 )
@@ -29,6 +29,20 @@ type TargetWindowMock struct {
 	deltaH      int
 	deltaV      int
 }
+
+type ActiveConfigMock struct {
+	grid *Grid
+}
+
+func (activeConfigMock *ActiveConfigMock) Grid() *Grid {
+	return activeConfigMock.grid
+}
+
+func (activeConfigMock *ActiveConfigMock) GridIndex() int {
+	return 0
+}
+func (activeConfigMock *ActiveConfigMock) OnPreviousGrid() {}
+func (activeConfigMock *ActiveConfigMock) OnNextGrid()     {}
 
 func (targetWindowMock *TargetWindowMock) Hwnd() winapi.Hwnd {
 	return targetWindowMock.hwnd
@@ -54,9 +68,9 @@ func TestSnapLeft(t *testing.T) {
 	targetWindowMock.size = &winapi.Rect{Left: 100, Top: 100, Right: 600, Bottom: 400}
 	targetWindowMock.desktopSize = &winapi.Rect{Left: 0, Top: 0, Right: 800, Bottom: 600}
 
-	activeConfigMock.Grid = new(Grid)
-	activeConfigMock.Grid.Columns = []int{1, 2, 1}
-	activeConfigMock.Grid.Rows = []int{1, 1}
+	activeConfigMock.grid = new(Grid)
+	activeConfigMock.grid.Columns = []int{1, 2, 1}
+	activeConfigMock.grid.Rows = []int{1, 1}
 	moveFunc = assertMove(t, &size{0, 0, 200, 300})
 	snapActionsMock.snapLeft(targetWindowMock, activeConfigMock)
 }
@@ -65,9 +79,9 @@ func TestSnapRight(t *testing.T) {
 	targetWindowMock.size = &winapi.Rect{Left: 100, Top: 100, Right: 600, Bottom: 400}
 	targetWindowMock.desktopSize = &winapi.Rect{Left: 0, Top: 0, Right: 800, Bottom: 600}
 
-	activeConfigMock.Grid = new(Grid)
-	activeConfigMock.Grid.Columns = []int{1, 2, 1}
-	activeConfigMock.Grid.Rows = []int{1, 1}
+	activeConfigMock.grid = new(Grid)
+	activeConfigMock.grid.Columns = []int{1, 2, 1}
+	activeConfigMock.grid.Rows = []int{1, 1}
 	moveFunc = assertMove(t, &size{200, 0, 400, 300})
 	snapActionsMock.snapRight(targetWindowMock, activeConfigMock)
 }
@@ -76,9 +90,9 @@ func TestSnapTop(t *testing.T) {
 	targetWindowMock.size = &winapi.Rect{Left: 100, Top: 100, Right: 600, Bottom: 400}
 	targetWindowMock.desktopSize = &winapi.Rect{Left: 0, Top: 0, Right: 800, Bottom: 600}
 
-	activeConfigMock.Grid = new(Grid)
-	activeConfigMock.Grid.Columns = []int{1, 2, 1}
-	activeConfigMock.Grid.Rows = []int{1, 1}
+	activeConfigMock.grid = new(Grid)
+	activeConfigMock.grid.Columns = []int{1, 2, 1}
+	activeConfigMock.grid.Rows = []int{1, 1}
 	moveFunc = assertMove(t, &size{0, 0, 200, 300})
 	snapActionsMock.snapTop(targetWindowMock, activeConfigMock)
 }
@@ -87,9 +101,9 @@ func TestSnapBottom(t *testing.T) {
 	targetWindowMock.size = &winapi.Rect{Left: 100, Top: 100, Right: 600, Bottom: 400}
 	targetWindowMock.desktopSize = &winapi.Rect{Left: 0, Top: 0, Right: 800, Bottom: 600}
 
-	activeConfigMock.Grid = new(Grid)
-	activeConfigMock.Grid.Columns = []int{1, 2, 1}
-	activeConfigMock.Grid.Rows = []int{1, 1}
+	activeConfigMock.grid = new(Grid)
+	activeConfigMock.grid.Columns = []int{1, 2, 1}
+	activeConfigMock.grid.Rows = []int{1, 1}
 	moveFunc = assertMove(t, &size{0, 300, 200, 300})
 	snapActionsMock.snapBottom(targetWindowMock, activeConfigMock)
 }
@@ -100,17 +114,17 @@ func TestSpanHorizontal(t *testing.T) {
 	targetWindowMock.size = &winapi.Rect{Left: 100, Top: 100, Right: 600, Bottom: 400}
 	targetWindowMock.desktopSize = &winapi.Rect{Left: 0, Top: 0, Right: 800, Bottom: 600}
 
-	activeConfigMock.Grid = new(Grid)
-	activeConfigMock.Grid.Columns = []int{1, 2, 1}
-	activeConfigMock.Grid.Rows = []int{1, 1}
+	activeConfigMock.grid = new(Grid)
+	activeConfigMock.grid.Columns = []int{1, 2, 1}
+	activeConfigMock.grid.Rows = []int{1, 1}
 	moveFunc = assertMove(t, &size{0, 0, 600, 300})
 	// execute
 	snapActionsMock.spanHorizontal(targetWindowMock, activeConfigMock, true)
 	// verify
 	item, ok := snapActionsMock.spans[0][targetWindowMock.hwnd]
 	assert.True(ok, "Span should exists")
-	assert.Equal(2, item.columns, "Increased column span expected")
-	assert.Equal(1, item.rows, "default for row")
+	assert.Equal(2, item.Columns, "Increased column span expected")
+	assert.Equal(1, item.Rows, "default for row")
 }
 
 func assertMove(t *testing.T, expect *size) func(left int, top int, width int, height int) {

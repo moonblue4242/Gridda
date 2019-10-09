@@ -11,6 +11,13 @@ type Grid struct {
 	Name    string
 	Columns []int
 	Rows    []int
+	Presets []Presets
+}
+
+// Presets defines values for windows which are set as defaults
+type Presets struct {
+	Executable string
+	Span       *Span
 }
 
 func (grid *Grid) columnsWeight() (weight int) {
