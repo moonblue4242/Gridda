@@ -81,7 +81,7 @@ func (trayIcon *trayIcon) setupTrayIcon() error {
 	for i := 1; i <= iconCount; i++ {
 		trayIcon.icons[i-1], err = winapi.NewIcon(strconv.Itoa(i) + ".ico")
 		if err != nil {
-			log.Fatalf("Unable to load icon #%d: %s\n", i, err)
+			log.Panicf("Unable to load icon #%d: %s\n", i, err)
 		}
 	}
 	// setup notification icon and basic UI
@@ -111,7 +111,7 @@ func (trayIcon *trayIcon) setupMenu(config *cmds.Config, selected int) {
 	}
 	trayIcon.menu, err = winapi.NewPopupMenu()
 	if err != nil {
-		log.Fatalf("Unable to create popup menu: %s\n", err)
+		log.Panicf("Unable to create popup menu: %s\n", err)
 	}
 	for i := 0; i < iconCount && i < len(config.Grids); i++ {
 		var flags uint = 0

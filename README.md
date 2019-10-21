@@ -8,6 +8,8 @@ Gridda is configured via a simple YAML-formatted config file located inside the 
 ## Configuration
 The project contains a default configuration file with all possible settings presented. Below you find a detailed description of all the configuration options.
 
+In case of an invalid configuration the application will exit and write the error to a file called gridda.log inside the application directory.
+
 The following excerpt shows a minimal configuration containing all the available options:
 ```
 grids:               # defines the available grids to select from, up to 6

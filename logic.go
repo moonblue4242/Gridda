@@ -33,7 +33,7 @@ func NewLogic() Logic {
 	// load config and apply
 	logic.config, err = cmds.LoadConfig("config.yaml")
 	if err != nil {
-		log.Fatalf("Config loading failed: %s\n", err)
+		log.Panicf("Config loading failed: %s\n", err)
 	}
 	// setup key binding service
 	logic.commander = new(cmds.Commander)
@@ -44,7 +44,7 @@ func NewLogic() Logic {
 	})
 
 	if err != nil {
-		log.Fatalf("UI Setup failed: %s\n", err)
+		log.Panicf("UI Setup failed: %s\n", err)
 	}
 	return logic
 }
