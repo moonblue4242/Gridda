@@ -11,6 +11,10 @@ import (
 	"github.com/moonblue4242/Gridda/winapi"
 )
 
+const (
+	hookyMsgID = "HOOKY"
+)
+
 // UI is the base instance for all ui related tasks
 type UI struct {
 	MainWindow winapi.Hwnd
@@ -18,6 +22,7 @@ type UI struct {
 	looping    bool
 	onHotkey   func(msg *winapi.Message)
 	actions    Actions
+	hook       uintptr
 }
 
 // Actions describe all actions which can be triggered by the UI
@@ -36,6 +41,8 @@ func New(actions Actions, config *cmds.Config, onHotkey func(msg *winapi.Message
 	}
 	ui.MainWindow = hwnd
 
+	ui.hook = winapi.AddHook()
+
 	ui.tray = NewTrayIcon(ui.MainWindow, ui.actions, config)
 
 	return ui, nil
@@ -49,6 +56,7 @@ func (ui *UI) ShowMain() {
 // Quit will close the message loop
 func (ui *UI) Quit() {
 	ui.looping = false
+	winapi.RemoveHook(ui.hook)
 }
 
 // SetGrid will set the active grid to show in the menu
@@ -80,9 +88,14 @@ func (ui *UI) Loop() {
 }
 
 func (ui *UI) createWindow(title string) (winapi.Hwnd, error) {
+	msgID := winapi.RegisterWindowMessage(hookyMsgID)
 	return winapi.CreateInactiveWindow(title, 0, 0, 300, 500,
 		winapi.NewMessageHandler(winapi.WM_CLOSE, func(hwnd winapi.Hwnd, wParam winapi.Wparam, lParam winapi.LParam) bool {
 			fmt.Println("ByeBye world")
+			return true
+		}),
+		winapi.NewMessageHandler(msgID, func(hwnd winapi.Hwnd, wParam winapi.Wparam, lParam winapi.LParam) bool {
+			fmt.Printf("ByeBye world! HWND:%d, code:%d\n", wParam, lParam)
 			return true
 		}),
 	)
