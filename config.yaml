@@ -1,0 +1,88 @@
+grids:
+- 
+  name: Triptych
+  columns: [2, 3, 2]
+  rows: [1,1]
+  presets:
+  -
+    executable: firefox.exe
+    span:
+      columns: 1
+      rows: 2
+  -
+    executable: code.exe
+    span:
+      columns: 1    
+      rows: 2
+- 
+  name: Fine Grid
+  columns: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]  
+  rows: [1,1,1,1]
+- 
+  name: Third
+  columns: [3,5,3]  
+  rows: [1,1,1,1]
+
+bindings:
+- 
+  action: SNAP_LEFT
+  alt: true
+  shift: true
+  key: VK_LEFT
+- 
+  action: SNAP_RIGHT
+  alt: true
+  shift: true
+  key: VK_MULTIPLY
+- 
+  action: SNAP_TOP
+  alt: true
+  shift: true
+  key: VK_UP
+- 
+  action: SNAP_BOTTOM
+  alt: true
+  shift: true
+  key: VK_DOWN
+- 
+  action: SPAN_HORIZONTAL_ADD
+  alt: true
+  ctrl: true
+  shift: true
+  key: VK_RIGHT
+- 
+  action: SPAN_HORIZONTAL_DEC
+  alt: true
+  ctrl: true
+  shift: true
+  key: VK_LEFT
+- 
+  action: SPAN_VERTICAL_ADD
+  alt: true
+  ctrl: true
+  shift: true
+  key: VK_DOWN
+- 
+  action: SPAN_VERTICAL_DEC
+  alt: true
+  ctrl: true
+  shift: true
+  key: VK_UP
+- 
+  action: TO_PREVIOUS_GRID
+  alt: true
+  ctrl: false
+  shift: true
+  key: VK_PRIOR
+- 
+  action: TO_NEXT_GRID
+  alt: true
+  ctrl: false
+  shift: true
+  key: VK_NEXT
+
+
+
+  
+  
+  
