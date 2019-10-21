@@ -10,6 +10,12 @@ import (
 	"os"
 )
 
+const (
+	major = 1
+	minor = 0
+	bug   = 0
+)
+
 // Build with -ldflags "-H windowsgui" to create a gui element
 func main() {
 
@@ -26,6 +32,8 @@ func setup() (f *os.File, w *bufio.Writer) {
 	if err == nil {
 		w = bufio.NewWriter(f)
 		log.SetOutput(w)
+		log.Printf("Version %d.%d.%d\n", major, minor, bug)
+		w.Flush()
 	} else {
 		panic(err)
 	}
