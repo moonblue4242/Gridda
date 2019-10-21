@@ -14,6 +14,7 @@ var (
 	registerHotkeyW       = user32.NewProc("RegisterHotKey")
 	unregisterHotkey      = user32.NewProc("UnregisterHotKey")
 	getMessageW           = user32.NewProc("GetMessageW")
+	sendMessageW          = user32.NewProc("SendMessageW")
 	dispatchMessageW      = user32.NewProc("DispatchMessageW")
 	messageBoxW           = user32.NewProc("MessageBoxW")
 	getForegroundWindowW  = user32.NewProc("GetForegroundWindow")
@@ -134,6 +135,12 @@ func GetModuleHandle(moduleName *string) uintptr {
 	ret, _, err := getModuleHandleA.Call(name)
 	fmt.Printf("Get Module: %d, %s\n", ret, err)
 	return ret
+}
+
+// SendMessage will send a message synchronously to the specified window
+func SendMessage(hwnd Hwnd, msg uint, wParam Wparam, lParam LParam) int {
+	ret, _, _ := sendMessageW.Call(uintptr(hwnd), uintptr(msg), uintptr(wParam), uintptr(lParam))
+	return int(ret)
 }
 
 func ifError(condition bool, error error, prefix string) error {

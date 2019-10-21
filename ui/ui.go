@@ -23,6 +23,7 @@ type Actions interface {
 
 // New creates a new ui instance
 func New(actions Actions, config *cmds.Config, onHotkey func(msg *winapi.Message)) (*UI, error) {
+
 	ui := &UI{actions: actions}
 	ui.onHotkey = onHotkey
 	hwnd, err := ui.createWindow("Gridda")
@@ -30,19 +31,6 @@ func New(actions Actions, config *cmds.Config, onHotkey func(msg *winapi.Message
 		return nil, err
 	}
 	ui.MainWindow = hwnd
-
-	var callback = func(hwnd winapi.Hwnd, lParam winapi.LParam) uintptr {
-		var processID = winapi.GetWindowThreadProcessID(hwnd)
-		processHandle, err := winapi.OpenProcess(processID)
-		if err == nil {
-			text, _ := winapi.GetWindowText(hwnd)
-			fmt.Printf("DD: %d, p:%d - %s -- %s\n", hwnd, processHandle, text, winapi.GetModuleBaseName(processHandle))
-		} else {
-
-		}
-		return 1
-	}
-	winapi.EnumWindows(winapi.WinEnumProc(callback))
 
 	ui.tray = NewTrayIcon(ui.MainWindow, ui.actions, config)
 

@@ -29,7 +29,6 @@ bindings:
   alt: true
   shift: true
   key: VK_LEFT
-  grid: default
 - 
   action: SNAP_RIGHT
   alt: true
