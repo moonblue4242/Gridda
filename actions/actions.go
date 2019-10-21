@@ -131,8 +131,12 @@ func (target *targetWindow) Delta() (deltaH int, deltaV int) {
 
 // calcBorderCorrectiosn will calculate corrections regaring the shadowed borders of Win 10
 func (target *targetWindow) updateBorderCorrections() {
-	clientArea, _ := winapi.GetClientRect(target.hwnd)
-	target.deltaH = int(target.size.Width()-clientArea.Right) / 2
-	target.deltaV = int(target.size.Height() - clientArea.Bottom)
+	clientArea, _ := winapi.BorderEx(target.hwnd)
+	target.deltaH = int(target.size.Width()-clientArea.Width()) / 2
+	target.deltaV = int(target.size.Height() - clientArea.Height())
+	// correct height off by one
+	if target.deltaV > 0 {
+		target.deltaV++
+	}
 	return
 }

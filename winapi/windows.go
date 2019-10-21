@@ -19,18 +19,24 @@ const (
 	wS_SYSMENU       = 0x00080000
 	wS_VISIBLE       = 0x10000000
 	wS_EX_NOACTIVATE = 0x08000000
+
+	GWL_EXSTYLE = -20
+	GWL_STYLE   = -16
 )
 
 var (
-	handlers        messageHandlers = make(messageHandlers)
-	registerClassW                  = user32.NewProc("RegisterClassW")
-	createWindowExW                 = user32.NewProc("CreateWindowExW")
-	defWindowProcW                  = user32.NewProc("DefWindowProcW")
-	showWindow                      = user32.NewProc("ShowWindow")
-	getClientRect                   = user32.NewProc("GetClientRect")
-	enumWindows                     = user32.NewProc("EnumWindows")
-	isWindow                        = user32.NewProc("IsWindow")
-	getWindowText                   = user32.NewProc("GetWindowTextA")
+	handlers              messageHandlers = make(messageHandlers)
+	dwmapi                                = syscall.NewLazyDLL("Dwmapi.dll")
+	registerClassW                        = user32.NewProc("RegisterClassW")
+	createWindowExW                       = user32.NewProc("CreateWindowExW")
+	defWindowProcW                        = user32.NewProc("DefWindowProcW")
+	showWindow                            = user32.NewProc("ShowWindow")
+	getClientRect                         = user32.NewProc("GetClientRect")
+	enumWindows                           = user32.NewProc("EnumWindows")
+	isWindow                              = user32.NewProc("IsWindow")
+	getWindowText                         = user32.NewProc("GetWindowTextA")
+	getWindowLongA                        = user32.NewProc("GetWindowLongA")
+	dwmGetWindowAttribute                 = dwmapi.NewProc("DwmGetWindowAttribute")
 )
 
 // MessageHandler can be used to add a custom handler for a specific window or application message to
@@ -170,6 +176,19 @@ func GetWindowText(hwnd Hwnd) (string, error) {
 		result = fmt.Sprintf("%s", data[:ret])
 	}
 	return result, ifError(ret != 0, err, "GetWindowText")
+}
+
+// GetWindowLong will return window information
+func GetWindowLong(hwnd Hwnd, index int) (int, error) {
+	ret, _, err := getWindowLongA.Call(uintptr(hwnd), uintptr(index))
+	return int(ret), ifError(ret == 0, err, "GetWindowLong")
+}
+
+// BorderEx returns the width of the drop shadow border
+func BorderEx(hwnd Hwnd) (*Rect, error) {
+	var rect Rect
+	ret, _, err := dwmGetWindowAttribute.Call(uintptr(hwnd), uintptr(9), uintptr(unsafe.Pointer(&rect)), uintptr(unsafe.Sizeof(rect)))
+	return &rect, ifError(ret != 0, err, "BorderEx")
 }
 
 func init() {
