@@ -1,3 +1,7 @@
+//
+//   Copyright (C) 2019 moonblue4242@gmail.com
+//
+
 package cmds
 
 import (
@@ -23,9 +27,9 @@ func (commander *Commander) NewCommander() {
 }
 
 // Bind will attach a command to a hotkey
-func (commander *Commander) Bind(vkey int32, alt bool, ctrl bool, shift bool, command Command) bool {
+func (commander *Commander) Bind(vkey int32, alt bool, ctrl bool, shift bool, win bool, command Command) bool {
 	commander.bindings = append(commander.bindings, command)
-	return winapi.RegisterHotVkey(len(commander.bindings)+commandOffset-1, vkey, alt, ctrl, shift)
+	return winapi.RegisterHotVkey(len(commander.bindings)+commandOffset-1, vkey, alt, ctrl, shift, win)
 }
 
 // Apply will apply the current configuration and its hotkey bindings deleting the previous ones
@@ -37,7 +41,7 @@ func (commander *Commander) Apply(config *Config, activeConfig actions.ActiveCon
 	// create new bindings
 	for _, binding := range config.Bindings {
 		action := availableActions[binding.Action] // create new variable inside closure context
-		commander.Bind(keys[binding.Key], binding.Alt, binding.Ctrl, binding.Shift, func() { action(activeConfig) })
+		commander.Bind(keys[binding.Key], binding.Alt, binding.Ctrl, binding.Shift, binding.Win, func() { action(activeConfig) })
 	}
 }
 

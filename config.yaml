@@ -1,6 +1,6 @@
 grids:
 - 
-  name: Triptychon
+  name: Triptych
   columns: [2, 3, 2]
   rows: [1,1]
   presets:
@@ -33,7 +33,7 @@ bindings:
   action: SNAP_RIGHT
   alt: true
   shift: true
-  key: VK_RIGHT
+  key: VK_MULTIPLY
 - 
   action: SNAP_TOP
   alt: true

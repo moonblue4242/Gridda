@@ -1,3 +1,7 @@
+//
+//   Copyright (C) 2019 moonblue4242@gmail.com
+//
+
 package winapi
 
 const (
@@ -13,15 +17,32 @@ const (
 
 	SPI_GETWORKAREA = 0x0030
 
-	VK_LEFT  = 0x25
-	VK_UP    = 0x26
-	VK_RIGHT = 0x27
-	VK_DOWN  = 0x28
-	VK_PRIOR = 0x21
-	VK_NEXT  = 0x22
+	VK_LEFT   = 0x25
+	VK_UP     = 0x26
+	VK_RIGHT  = 0x27
+	VK_DOWN   = 0x28
+	VK_PRIOR  = 0x21
+	VK_NEXT   = 0x22
+	VK_INSERT = 0x2D
+	VK_DELETE = 0x2E
+	VK_HOME   = 0x24
+	VK_END    = 0x23
+	VK_SPACE  = 0x20
+
+	VK_NUMPAD0   = 0x60
+	VK_MULTIPLY  = 0x6A
+	VK_ADD       = 0x6B
+	VK_SEPARATOR = 0x6C
+	VK_SUBTRACT  = 0x6D
+	VK_DECIMAL   = 0x6E
+	VK_DIVIDE    = 0x6F
 
 	VK_A = 0x41
 	VK_Z = 0x5A
+
+	VK_0 = 0x30
+
+	VK_F1 = 0x70
 
 	WM_QUIT          = 0x0012
 	WM_CLOSE         = 0x0010

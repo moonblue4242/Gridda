@@ -1,3 +1,7 @@
+//
+//   Copyright (C) 2019 moonblue4242@gmail.com
+//
+
 package winapi
 
 import "fmt"

@@ -1,8 +1,15 @@
+//
+//   Copyright (C) 2019 moonblue4242@gmail.com
+//
+
 package cmds
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"strconv"
+	"strings"
 
 	"github.com/moonblue4242/Gridda/actions"
 	"github.com/moonblue4242/Gridda/winapi"
@@ -28,38 +35,25 @@ var (
 		"SPAN_VERTICAL_DEC":   snapActions.SpanVertical(false),
 	}
 	keys = map[string]int32{
-		"VK_LEFT":  winapi.VK_LEFT,
-		"VK_RIGHT": winapi.VK_RIGHT,
-		"VK_UP":    winapi.VK_UP,
-		"VK_DOWN":  winapi.VK_DOWN,
-		"VK_PRIOR": winapi.VK_PRIOR,
-		"VK_NEXT":  winapi.VK_NEXT,
-		"VK_A":     winapi.CharToVK('a'),
-		"VK_B":     winapi.CharToVK('b'),
-		"VK_C":     winapi.CharToVK('c'),
-		"VK_D":     winapi.CharToVK('d'),
-		"VK_E":     winapi.CharToVK('e'),
-		"VK_F":     winapi.CharToVK('f'),
-		"VK_G":     winapi.CharToVK('g'),
-		"VK_H":     winapi.CharToVK('h'),
-		"VK_I":     winapi.CharToVK('i'),
-		"VK_J":     winapi.CharToVK('j'),
-		"VK_K":     winapi.CharToVK('k'),
-		"VK_L":     winapi.CharToVK('l'),
-		"VK_M":     winapi.CharToVK('m'),
-		"VK_N":     winapi.CharToVK('n'),
-		"VK_O":     winapi.CharToVK('o'),
-		"VK_P":     winapi.CharToVK('p'),
-		"VK_Q":     winapi.CharToVK('q'),
-		"VK_R":     winapi.CharToVK('r'),
-		"VK_S":     winapi.CharToVK('s'),
-		"VK_T":     winapi.CharToVK('t'),
-		"VK_U":     winapi.CharToVK('u'),
-		"VK_V":     winapi.CharToVK('v'),
-		"VK_W":     winapi.CharToVK('w'),
-		"VK_X":     winapi.CharToVK('x'),
-		"VK_Y":     winapi.CharToVK('y'),
-		"VK_Z":     winapi.CharToVK('z'),
+		"VK_LEFT":   winapi.VK_LEFT,
+		"VK_RIGHT":  winapi.VK_RIGHT,
+		"VK_UP":     winapi.VK_UP,
+		"VK_DOWN":   winapi.VK_DOWN,
+		"VK_PRIOR":  winapi.VK_PRIOR,
+		"VK_NEXT":   winapi.VK_NEXT,
+		"VK_INSERT": winapi.VK_INSERT,
+		"VK_DELETE": winapi.VK_DELETE,
+		"VK_HOME":   winapi.VK_HOME,
+		"VK_END":    winapi.VK_END,
+		"VK_SPACE":  winapi.VK_SPACE,
+
+		"VK_NUMPAD0":   winapi.VK_NUMPAD0,
+		"VK_MULTIPLY":  winapi.VK_MULTIPLY,
+		"VK_ADD":       winapi.VK_ADD,
+		"VK_SEPARATOR": winapi.VK_SEPARATOR,
+		"VK_SUBTRACT":  winapi.VK_SUBTRACT,
+		"VK_DECIMAL":   winapi.VK_DECIMAL,
+		"VK_DIVIDE":    winapi.VK_DIVIDE,
 	}
 )
 
@@ -75,6 +69,7 @@ type Binding struct {
 	Alt    bool
 	Ctrl   bool
 	Shift  bool
+	Win    bool
 	Key    string
 	Action string
 }
@@ -113,4 +108,24 @@ func LoadConfig(fileName string) (*Config, error) {
 		}
 	}
 	return &config, nil
+}
+
+func init() {
+	// numbers
+	for i := 0; i < 10; i++ {
+		keys["VK_"+strconv.Itoa(i)] = winapi.DigitToVK(i)
+	}
+	// chars
+	for i := 0; i < 26; i++ {
+		var ch rune = rune('a' + i)
+		keys["VK_"+strings.ToUpper(fmt.Sprintf("%c", ch))] = winapi.CharToVK(ch)
+	}
+	// numpad
+	for i := 0; i < 10; i++ {
+		keys["VK_NUMPAD"+strconv.Itoa(i)] = winapi.NumToVK(i)
+	}
+	// function keys
+	for i := 1; i <= 12; i++ {
+		keys["VK_F"+strconv.Itoa(i)] = winapi.FunctionToVK(i)
+	}
 }

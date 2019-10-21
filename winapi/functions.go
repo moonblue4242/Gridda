@@ -1,3 +1,7 @@
+//
+//   Copyright (C) 2019 moonblue4242@gmail.com
+//
+
 package winapi
 
 import (
@@ -29,12 +33,12 @@ var (
 
 // RegisterHotkey will register the given key
 //
-func RegisterHotkey(id int, key rune, alt bool, ctrl bool, shift bool) bool {
-	return RegisterHotVkey(id, CharToVK(key), alt, ctrl, shift)
+func RegisterHotkey(id int, key rune, alt bool, ctrl bool, shift bool, win bool) bool {
+	return RegisterHotVkey(id, CharToVK(key), alt, ctrl, shift, win)
 }
 
 // RegisterHotVkey will register a hotkey using its virtual key code
-func RegisterHotVkey(id int, vkey int32, alt bool, ctrl bool, shift bool) bool {
+func RegisterHotVkey(id int, vkey int32, alt bool, ctrl bool, shift bool, win bool) bool {
 	var modifier = 0
 	if alt {
 		modifier |= MOD_ALT
@@ -44,6 +48,9 @@ func RegisterHotVkey(id int, vkey int32, alt bool, ctrl bool, shift bool) bool {
 	}
 	if ctrl {
 		modifier |= MOD_CONTROL
+	}
+	if win {
+		modifier |= MOD_WIN
 	}
 	ret, _, _ := registerHotkeyW.Call(uintptr(0), uintptr(id), uintptr(modifier), uintptr(vkey))
 	return ret != 0
@@ -153,4 +160,19 @@ func ifError(condition bool, error error, prefix string) error {
 // CharToVK converts a rune to a virtual key (valid for a-z)
 func CharToVK(char rune) int32 {
 	return char - 'a' + VK_A
+}
+
+// DigitToVK returns the virtual key for the given digits (valid for 0-9)
+func DigitToVK(digit int) int32 {
+	return int32(digit + VK_0)
+}
+
+// FunctionToVK returns the virtual key for the given function key index (valid for 1-12)
+func FunctionToVK(index int) int32 {
+	return int32(index - 1 + VK_F1)
+}
+
+// NumToVK returns the virtual key for the given num key index (valid for 0-9)
+func NumToVK(index int) int32 {
+	return int32(index + VK_NUMPAD0)
 }
