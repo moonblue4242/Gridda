@@ -33,7 +33,7 @@ bindings:
   action: SNAP_RIGHT
   alt: true
   shift: true
-  key: VK_MULTIPLY
+  key: VK_RIGHT
 - 
   action: SNAP_TOP
   alt: true

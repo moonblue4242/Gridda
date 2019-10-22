@@ -22,7 +22,7 @@ type UI struct {
 	looping    bool
 	onHotkey   func(msg *winapi.Message)
 	actions    Actions
-	hook       uintptr
+	hook       winapi.Hook
 }
 
 // Actions describe all actions which can be triggered by the UI
@@ -41,10 +41,9 @@ func New(actions Actions, config *cmds.Config, onHotkey func(msg *winapi.Message
 	}
 	ui.MainWindow = hwnd
 
-	ui.hook = winapi.AddHook()
-
 	ui.tray = NewTrayIcon(ui.MainWindow, ui.actions, config)
 
+	ui.createHook()
 	return ui, nil
 }
 
@@ -88,15 +87,19 @@ func (ui *UI) Loop() {
 }
 
 func (ui *UI) createWindow(title string) (winapi.Hwnd, error) {
-	msgID := winapi.RegisterWindowMessage(hookyMsgID)
 	return winapi.CreateInactiveWindow(title, 0, 0, 300, 500,
 		winapi.NewMessageHandler(winapi.WM_CLOSE, func(hwnd winapi.Hwnd, wParam winapi.Wparam, lParam winapi.LParam) bool {
 			fmt.Println("ByeBye world")
 			return true
 		}),
-		winapi.NewMessageHandler(msgID, func(hwnd winapi.Hwnd, wParam winapi.Wparam, lParam winapi.LParam) bool {
-			fmt.Printf("ByeBye world! HWND:%d, code:%d\n", wParam, lParam)
-			return true
-		}),
 	)
+}
+
+func (ui *UI) createHook() {
+	msgID := winapi.RegisterWindowMessage(hookyMsgID)
+	winapi.AddMessageHandler(ui.MainWindow, winapi.NewMessageHandler(msgID, func(hwnd winapi.Hwnd, wParam winapi.Wparam, lParam winapi.LParam) bool {
+		fmt.Printf("Hello Hook! HWND:%d, code:%d\n", wParam, lParam)
+		return true
+	}))
+	ui.hook = winapi.AddCbtHook()
 }
