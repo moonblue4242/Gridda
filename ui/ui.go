@@ -28,6 +28,13 @@ type UI struct {
 // Actions describe all actions which can be triggered by the UI
 type Actions interface {
 	TrayIconActions
+	HookActions
+}
+
+// HookActions describe the actions which can be triggered by the registered hook
+type HookActions interface {
+	OnActivate(hwnd winapi.Hwnd)
+	OnFocus(hwnd winapi.Hwnd)
 }
 
 // New creates a new ui instance
@@ -98,6 +105,12 @@ func (ui *UI) createWindow(title string) (winapi.Hwnd, error) {
 func (ui *UI) createHook() {
 	msgID := winapi.RegisterWindowMessage(hookyMsgID)
 	winapi.AddMessageHandler(ui.MainWindow, winapi.NewMessageHandler(msgID, func(hwnd winapi.Hwnd, wParam winapi.Wparam, lParam winapi.LParam) bool {
+		switch lParam {
+		case winapi.HCBT_ACTIVATE:
+			ui.actions.OnActivate(winapi.Hwnd(wParam))
+		case winapi.HCBT_SETFOCUS:
+			ui.actions.OnFocus(winapi.Hwnd(wParam))
+		}
 		fmt.Printf("Hello Hook! HWND:%d, code:%d\n", wParam, lParam)
 		return true
 	}))

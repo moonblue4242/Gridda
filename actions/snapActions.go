@@ -121,7 +121,7 @@ func (snapActions *SnapActions) snapBottom(target TargetWindow, activeConfig Act
 // spanHorizontal will increase/decrease the span bound by the amount of columns
 // additionally a snap is performed to refresh
 func (snapActions *SnapActions) spanHorizontal(target TargetWindow, activeConfig ActiveConfig, increase bool) {
-	item := snapActions.getOrSetSpan(activeConfig, target.Hwnd())
+	item := snapActions.getOrSetSpan(activeConfig, target)
 	if increase && item.Columns < len(activeConfig.Grid().Columns) {
 		item.Columns++
 	} else if !increase && item.Columns > 1 {
@@ -134,7 +134,7 @@ func (snapActions *SnapActions) spanHorizontal(target TargetWindow, activeConfig
 // spanHorizontal will increase/decrease the span bound by the amount of columns
 // additionally a snap is performed to refresh
 func (snapActions *SnapActions) spanVertical(target TargetWindow, activeConfig ActiveConfig, increase bool) {
-	item := snapActions.getOrSetSpan(activeConfig, target.Hwnd())
+	item := snapActions.getOrSetSpan(activeConfig, target)
 	if increase && item.Rows < len(activeConfig.Grid().Rows) {
 		item.Rows++
 	} else if !increase && item.Rows > 1 {
@@ -144,28 +144,26 @@ func (snapActions *SnapActions) spanVertical(target TargetWindow, activeConfig A
 	snap(target, activeConfig, snapActions, nil)
 }
 
-func (snapActions *SnapActions) getOrSetSpan(activeConfig ActiveConfig, hwnd winapi.Hwnd) *Span {
+func (snapActions *SnapActions) getOrSetSpan(activeConfig ActiveConfig, target TargetWindow) *Span {
 	spanMap, ok := snapActions.spans[activeConfig.GridIndex()]
 	if !ok {
 		spanMap = make(map[winapi.Hwnd]*Span)
 		snapActions.spans[activeConfig.GridIndex()] = spanMap
 	}
-	item, ok := spanMap[hwnd]
+	item, ok := spanMap[target.Hwnd()]
 	if !ok {
 		item = new(Span)
-		item.Columns, item.Rows = snapActions.getPresetSpanOrDefault(hwnd, activeConfig)
-		spanMap[hwnd] = item
+		item.Columns, item.Rows = snapActions.getPresetSpanOrDefault(target, activeConfig)
+		spanMap[target.Hwnd()] = item
 	}
 	return item
 }
 
 // getPresetSpanOrDefault will check if for the given base module the window is controlled by a preset exists
-func (snapActions *SnapActions) getPresetSpanOrDefault(hwnd winapi.Hwnd, activeConfig ActiveConfig) (columns int, rows int) {
+func (snapActions *SnapActions) getPresetSpanOrDefault(targetWindow TargetWindow, activeConfig ActiveConfig) (columns int, rows int) {
 	columns = 1
 	rows = 1
-	processID := winapi.GetWindowThreadProcessID(hwnd)
-	if processHandle, err := winapi.OpenProcess(processID); err == nil {
-		moduleName := strings.ToUpper(winapi.GetModuleBaseName(processHandle))
+	if moduleName, err := targetWindow.ModuleName(); err == nil {
 		for _, preset := range activeConfig.Grid().Presets {
 			if strings.ToUpper(preset.Executable) == moduleName {
 				columns = preset.Span.Columns
@@ -179,7 +177,7 @@ func (snapActions *SnapActions) getPresetSpanOrDefault(hwnd winapi.Hwnd, activeC
 
 func snap(target TargetWindow, activeConfig ActiveConfig, snapActions *SnapActions, snapMovement snapMovement) {
 	grid := activeConfig.Grid()
-	span := snapActions.getOrSetSpan(activeConfig, target.Hwnd())
+	span := snapActions.getOrSetSpan(activeConfig, target)
 	// calculate corrections for special borders (e.g. drop shadows)
 	deltaH, _ := target.Delta()
 	correctedLeft := target.Size().Left + int32(deltaH)
@@ -226,7 +224,7 @@ func getSpannedDistance(weightIndex int, weights []int, distancePerWeightPx int3
 func getGridTile(pos int32, maxDistance int32, weights []int) (gridStart int32, gridIndex int, distancePerWeightPx int32) {
 	gridStart = 0
 	gridIndex = 0
-	distancePerWeightPx = maxDistance / sum(&weights)
+	distancePerWeightPx = calcDistancePerWeightPx(maxDistance, &weights)
 	for idx, weight := range weights {
 		additionalDistance := int32(weight) * distancePerWeightPx
 		gridIndex = idx
@@ -236,6 +234,10 @@ func getGridTile(pos int32, maxDistance int32, weights []int) (gridStart int32, 
 		gridStart += additionalDistance
 	}
 	return
+}
+
+func calcDistancePerWeightPx(maxDistance int32, weights *[]int) int32 {
+	return maxDistance / sum(weights)
 }
 
 func sum(weights *[]int) int32 {

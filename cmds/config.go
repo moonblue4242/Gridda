@@ -18,7 +18,6 @@ import (
 )
 
 var (
-	// activeConfig     *actions.ActiveConfig
 	snapActions      = actions.NewSnapActions()
 	availableActions = map[string]actions.ActionHandler{
 		"MOVE_LEFT":           actions.MoveLeft,

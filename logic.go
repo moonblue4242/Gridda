@@ -21,6 +21,7 @@ type Logic interface {
 
 type logic struct {
 	ui               *ui.UI
+	expandActions    *actions.ExpandActions
 	config           *cmds.Config
 	commander        *cmds.Commander
 	currentGridIndex int
@@ -42,6 +43,9 @@ func NewLogic() Logic {
 	logic.ui, err = ui.New(logic, logic.config, func(msg *winapi.Message) {
 		logic.commander.HandleHotkey(msg)
 	})
+
+	// setup hook logic
+	logic.expandActions = actions.NewExpandActions()
 
 	if err != nil {
 		log.Panicf("UI Setup failed: %s\n", err)
@@ -94,4 +98,12 @@ func (logic *logic) OnNextGrid() {
 func (logic *logic) OnGridSelect(index int) {
 	logic.ui.SetGrid(logic.config, index)
 	logic.currentGridIndex = index
+}
+
+func (logic *logic) OnActivate(hwnd winapi.Hwnd) {
+	logic.expandActions.Expand(hwnd, logic)
+}
+
+func (logic *logic) OnFocus(hwnd winapi.Hwnd) {
+
 }

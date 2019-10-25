@@ -6,6 +6,7 @@ package actions
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/moonblue4242/Gridda/winapi"
 )
@@ -87,6 +88,7 @@ type TargetWindow interface {
 	DesktopSize() *winapi.Rect
 	Delta() (deltaH int, deltaV int)
 	Move(left int, top int, width int, height int)
+	ModuleName() (name string, err error)
 }
 
 type targetWindow struct {
@@ -99,8 +101,13 @@ type targetWindow struct {
 
 // GetTarget will retrieve the currently focus window
 func GetTarget() TargetWindow {
+	return GetTargetFromHandle(winapi.GetForegroundWindow())
+}
+
+// GetTargetFromHandle will create a target window out of the given windows window handle
+func GetTargetFromHandle(hwnd winapi.Hwnd) TargetWindow {
 	target := new(targetWindow)
-	target.hwnd = winapi.GetForegroundWindow()
+	target.hwnd = hwnd
 	winapi.GetWindowRect(target.hwnd, &target.size)
 	target.desktopSize, _ = winapi.GetWorkArea()
 	target.updateBorderCorrections()
@@ -141,6 +148,15 @@ func (target *targetWindow) updateBorderCorrections() {
 	// correct height off by one
 	if target.deltaV > 0 {
 		target.deltaV++
+	}
+	return
+}
+
+// moduleName will return the name of the module the window is associated with
+func (target *targetWindow) ModuleName() (name string, err error) {
+	processID := winapi.GetWindowThreadProcessID(target.Hwnd())
+	if processHandle, err := winapi.OpenProcess(processID); err == nil {
+		name = strings.ToUpper(winapi.GetModuleBaseName(processHandle))
 	}
 	return
 }
