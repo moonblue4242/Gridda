@@ -193,40 +193,37 @@ func snap(target TargetWindow, activeConfig ActiveConfig, snapActions *SnapActio
 }
 
 // move the target window to the grid tile specified taking into account any necessary border corrections
-func move(target TargetWindow, span *Span, grid *Grid, gridLeftIndex int, gridTopIndex int, widthPerWeightPx int32, heightPerWeightPx int32) {
-	deltaH, deltaV := target.Delta()
-	left := getWeightedPosition(gridLeftIndex-1, grid.Columns, widthPerWeightPx)
-	top := getWeightedPosition(gridTopIndex-1, grid.Rows, heightPerWeightPx)
-	width := getSpannedDistance(gridLeftIndex, grid.Columns, widthPerWeightPx, span.Columns)
-	height := getSpannedDistance(gridTopIndex, grid.Rows, heightPerWeightPx, span.Rows)
-
-	target.Move(left-deltaH, top, width+deltaH*2, height+deltaV)
+func move(target TargetWindow, span *Span, grid *Grid, gridLeftIndex int, gridTopIndex int, widthPerWeightPx int, heightPerWeightPx int) {
+	left, top, width, height := calcCorrectedPosition(target, grid, gridLeftIndex, gridTopIndex, span, widthPerWeightPx, heightPerWeightPx)
+	target.Move(left, top, width, height)
 }
 
-func getWeightedPosition(weightIndex int, weights []int, distancePerWeightPx int32) (pos int) {
-	pos = 0
-	if weightIndex >= 0 && weightIndex < len(weights) {
-		for i := 0; i <= weightIndex; i++ {
-			pos += weights[i] * int(distancePerWeightPx)
-		}
-	}
+func calcCorrectedPosition(target TargetWindow, grid *Grid, column int, row int, span *Span, widthPerWeightPx int, heightPerWeightPx int) (left int, top int, width int, height int) {
+	deltaH, deltaV := target.Delta()
+	left = grid.Columns.weightedSumFrom(column-1, int(widthPerWeightPx))
+	left = left - deltaH
+	top = grid.Rows.weightedSumFrom(row-1, int(heightPerWeightPx))
+	width = getSpannedDistance(column, grid.Columns, widthPerWeightPx, span.Columns)
+	width = width + deltaH*2
+	height = getSpannedDistance(row, grid.Rows, heightPerWeightPx, span.Rows)
+	height = height + deltaV
 	return
 }
 
-func getSpannedDistance(weightIndex int, weights []int, distancePerWeightPx int32, span int) (distance int) {
+func getSpannedDistance(weightIndex int, weights []int, distancePerWeightPx int, span int) (distance int) {
 	distance = 0
 	for i := 0; i < span && weightIndex+i < len(weights); i++ {
-		distance += weights[weightIndex+i] * int(distancePerWeightPx)
+		distance += weights[weightIndex+i] * distancePerWeightPx
 	}
 	return
 }
 
-func getGridTile(pos int32, maxDistance int32, weights []int) (gridStart int32, gridIndex int, distancePerWeightPx int32) {
+func getGridTile(pos int32, maxDistance int32, weights Weights) (gridStart int32, gridIndex int, distancePerWeightPx int) {
 	gridStart = 0
 	gridIndex = 0
-	distancePerWeightPx = calcDistancePerWeightPx(maxDistance, &weights)
+	distancePerWeightPx = weights.fractionPerWeight(int(maxDistance))
 	for idx, weight := range weights {
-		additionalDistance := int32(weight) * distancePerWeightPx
+		additionalDistance := int32(weight) * int32(distancePerWeightPx)
 		gridIndex = idx
 		if gridStart+additionalDistance > pos {
 			break
@@ -234,16 +231,4 @@ func getGridTile(pos int32, maxDistance int32, weights []int) (gridStart int32, 
 		gridStart += additionalDistance
 	}
 	return
-}
-
-func calcDistancePerWeightPx(maxDistance int32, weights *[]int) int32 {
-	return maxDistance / sum(weights)
-}
-
-func sum(weights *[]int) int32 {
-	var result = 0
-	for _, weight := range *weights {
-		result += weight
-	}
-	return int32(result)
 }

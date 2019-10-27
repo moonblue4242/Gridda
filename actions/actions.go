@@ -5,50 +5,10 @@
 package actions
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/moonblue4242/Gridda/winapi"
 )
-
-// Grid defines a basic grid on the screen at which windows can be snapped to
-type Grid struct {
-	Name    string
-	Columns []int
-	Rows    []int
-	Presets []Presets
-}
-
-// Presets defines values for windows which are set as defaults
-type Presets struct {
-	Executable string
-	Span       *Span
-}
-
-func (grid *Grid) columnsWeight() (weight int) {
-	weight = 0
-	for _, column := range grid.Columns {
-		weight += column
-	}
-	return
-}
-
-func (grid *Grid) rowsWeight() (weight int) {
-	weight = 0
-	for _, rows := range grid.Rows {
-		weight += rows
-	}
-	return
-}
-
-// Validate determines if the grid object is setup correctly
-func (grid *Grid) Validate() (err error) {
-	err = nil
-	if len(grid.Name) < 1 {
-		err = errors.New("Grid must have a name with at least one character")
-	}
-	return
-}
 
 // ActiveConfig defines the currently active configuration along with additional data
 // like row or column span

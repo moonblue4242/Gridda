@@ -6,7 +6,6 @@ package actions
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/moonblue4242/Gridda/winapi"
 )
@@ -43,15 +42,20 @@ func (expandActions *ExpandActions) expand(target TargetWindow, activeConfig Act
 		expandActions.expandedWindow.Move(int(rect.Left), int(rect.Top), int(rect.Width()), int(rect.Bottom))
 		expandActions.expandedWindow = nil
 	}
-	if err == nil && strings.ToUpper("firefox.exe") == name {
-		left := getWeightedPosition(2-1, activeConfig.Grid().Columns, calcDistancePerWeightPx(target.DesktopSize().Width(), &activeConfig.Grid().Columns))
-		fmt.Sprintln("Firefox")
-		deltaH, _ := target.Delta()
-		if left == int(target.Size().Left)+deltaH {
-			rect := target.Size()
-			fmt.Printf("EXPANDING:: %s\n", rect)
-			target.Move(int(rect.Left-400), int(rect.Top), int(rect.Width()+400), int(rect.Bottom))
-			expandActions.expandedWindow = target
+	if err == nil {
+		if preset := activeConfig.Grid().Presets.FindFirst(name); preset != nil && preset.Expandable {
+
+			distancePerWeightPx := activeConfig.Grid().Columns.fractionPerWeight(int(target.DesktopSize().Width()))
+			distancePerHeightPx := activeConfig.Grid().Rows.fractionPerWeight(int(target.DesktopSize().Height()))
+
+			left, _, _, _ := calcCorrectedPosition(target, activeConfig.Grid(), 2, 0, preset.Span, distancePerWeightPx, distancePerHeightPx)
+			fmt.Sprintln("Firefox")
+			if left == int(target.Size().Left) {
+				rect := target.Size()
+				fmt.Printf("EXPANDING:: %s\n", rect)
+				target.Move(int(rect.Left-400), int(rect.Top), int(rect.Width()+400), int(rect.Bottom))
+				expandActions.expandedWindow = target
+			}
 		}
 	}
 
