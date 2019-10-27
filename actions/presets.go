@@ -13,7 +13,7 @@ type Presets []Preset
 type Preset struct {
 	Executable string
 	Span       *Span
-	Expandable bool
+	Expandable *Expandable
 }
 
 // FindFirst will retrieve the first preset with the defined properties

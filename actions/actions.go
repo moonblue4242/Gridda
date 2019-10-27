@@ -49,6 +49,7 @@ type TargetWindow interface {
 	Delta() (deltaH int, deltaV int)
 	Move(left int, top int, width int, height int)
 	ModuleName() (name string, err error)
+	Expand(left int, right int, top int, bottom int)
 }
 
 type targetWindow struct {
@@ -93,6 +94,12 @@ func (target *targetWindow) DesktopSize() *winapi.Rect {
 func (target *targetWindow) Move(left int, top int, width int, height int) {
 	// winapi.MoveWindow(target.hwnd, left-target.deltaH, top, width+target.deltaH*2, height+target.deltaV)
 	winapi.MoveWindow(target.hwnd, left, top, width, height)
+}
+
+// Expand will expand the window given the values, nil value will omit scaling
+func (target *targetWindow) Expand(left int, right int, top int, bottom int) {
+	rect := target.Size()
+	target.Move(int(rect.Left)-left, int(rect.Top)-top, int(rect.Width())+left+right, int(rect.Height())+top+bottom)
 }
 
 // Delta returns the border delta of the given window

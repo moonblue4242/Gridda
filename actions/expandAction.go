@@ -13,6 +13,7 @@ import (
 // ExpandActions incorporates all the action for expanding a window
 type ExpandActions struct {
 	expandedWindow TargetWindow
+	expandedPreset *Preset
 }
 
 // NewExpandActions creates a new initialized expands actions structure which can be called to execute the action
@@ -36,27 +37,59 @@ func (expandActions *ExpandActions) Expand(hwnd winapi.Hwnd, activeConfig Active
 func (expandActions *ExpandActions) expand(target TargetWindow, activeConfig ActiveConfig) {
 	name, err := target.ModuleName()
 	fmt.Printf("MODULE:: %s\n", name)
+	// resize to previous size only if not moved
 	if expandActions.expandedWindow != nil {
-		rect := expandActions.expandedWindow.Size()
-		// no need to calculate something as target window has the latest data stored
-		expandActions.expandedWindow.Move(int(rect.Left), int(rect.Top), int(rect.Width()), int(rect.Bottom))
-		expandActions.expandedWindow = nil
+		reaquiredTarget := GetTargetFromHandle(expandActions.expandedWindow.Hwnd())
+		if isAt(reaquiredTarget, activeConfig, &expandActions.expandedPreset.Expandable.Where, &expandActions.expandedPreset.Expandable.How) {
+			rect := expandActions.expandedWindow.Size()
+			// no need to calculate something as target window has the latest data stored
+			expandActions.expandedWindow.Move(int(rect.Left), int(rect.Top), int(rect.Width()), int(rect.Height()))
+		}
 	}
+	expandActions.expandedWindow = nil
 	if err == nil {
-		if preset := activeConfig.Grid().Presets.FindFirst(name); preset != nil && preset.Expandable {
-
-			distancePerWeightPx := activeConfig.Grid().Columns.fractionPerWeight(int(target.DesktopSize().Width()))
-			distancePerHeightPx := activeConfig.Grid().Rows.fractionPerWeight(int(target.DesktopSize().Height()))
-
-			left, _, _, _ := calcCorrectedPosition(target, activeConfig.Grid(), 2, 0, preset.Span, distancePerWeightPx, distancePerHeightPx)
-			fmt.Sprintln("Firefox")
-			if left == int(target.Size().Left) {
-				rect := target.Size()
-				fmt.Printf("EXPANDING:: %s\n", rect)
-				target.Move(int(rect.Left-400), int(rect.Top), int(rect.Width()+400), int(rect.Bottom))
+		if preset := activeConfig.Grid().Presets.FindFirst(name); preset != nil && preset.Expandable != nil {
+			fmt.Sprintln(preset.Executable)
+			if isAt(target, activeConfig, &preset.Expandable.Where, nil) {
+				how := preset.Expandable.How
+				target.Expand(how.Left, how.Right, how.Top, how.Bottom)
 				expandActions.expandedWindow = target
+				expandActions.expandedPreset = preset
 			}
 		}
 	}
+
+}
+
+func isAt(target TargetWindow, activeConfig ActiveConfig, where *Where, how *How) bool {
+	distancePerWeightPx := activeConfig.Grid().Columns.fractionPerWeight(int(target.DesktopSize().Width()))
+	distancePerHeightPx := activeConfig.Grid().Rows.fractionPerWeight(int(target.DesktopSize().Height()))
+
+	span := &Span{0, 0}
+	if where.Span != nil {
+		span = where.Span
+	}
+
+	// initialize to zero if missing
+	if how == nil {
+		how = &How{0, 0, 0, 0}
+	}
+
+	left, top, width, height := calcCorrectedPosition(target, activeConfig.Grid(), where.Column, where.Row, span, distancePerWeightPx, distancePerHeightPx)
+	// add expand to allow checking against expanded window
+	left = left - how.Left
+	top = top - how.Top
+	width = width + how.Left + how.Right
+	height = height + how.Top + how.Bottom
+	fmt.Printf("@: %d,%d,%d,%d\n", left, top, width, height)
+	// check against target, use span for width and height if available
+	result := left == int(target.Size().Left)
+	result = result && top == int(target.Size().Top)
+	if where.Span != nil {
+		result = result && width == int(target.Size().Width())
+		result = result && height == int(target.Size().Height())
+	}
+
+	return result
 
 }

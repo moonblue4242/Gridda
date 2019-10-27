@@ -6,7 +6,15 @@ grids:
   presets:
   -
     executable: firefox.exe
-    expandable: true
+    expandable: 
+      where:
+        column: 2
+        row: 0
+        span:
+          columns: 1
+          rows: 2
+      how:
+        left: 650    
     span:
       columns: 1
       rows: 2
